@@ -1,0 +1,13 @@
+You are working on mimir, a lightweight local-first notification aggregator.
+
+Project laws:
+1. Keep the bundle small. Prefer platform APIs, native browser features, and tiny utilities over heavy UI or state libraries.
+2. The adapter contract is the primary extension seam. New providers must fit the provider interface without changing unrelated provider code.
+3. The UI reads from the repository/cache layer, never directly from live provider responses.
+4. Sensitive auth, token exchange, deep-link handling, secure storage, and privileged fetches belong in Tauri/Rust whenever possible.
+5. Never store OAuth tokens or secrets in plaintext SQLite.
+6. Favor explicit types, deterministic data flow, and composable hooks over hidden magic.
+7. Treat performance and privacy as first-order features. Avoid background work that does not improve user value.
+8. Preserve a calm, work-focused UI: sparse layout, strong typography, low visual noise.
+9. When adding providers, follow docs/provider-template.ts and keep registration automatic through the provider registry.
+10. When changing architecture or security boundaries, update docs/ARCHITECTURE.md and docs/API_STANDARDS.md in the same change.
