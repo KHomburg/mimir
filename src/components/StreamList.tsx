@@ -1,5 +1,7 @@
-import type { CSSProperties } from 'react'
+import { Fragment, type CSSProperties } from 'react'
 import { buildAggregatedStream } from '../lib/aggregator'
+import { Badge, StreamRowBase } from './ui'
+import type { ProviderPluginDefinition } from '../providers/provider-plugin'
 import type { ActiveView } from '../store/uiStore'
 import type { MimirNotification } from '../types/mimir'
 
@@ -11,6 +13,7 @@ interface StreamListProps {
   onSelectThread: (threadId: string) => void
   emptyStateMessage: string
   accentByProvider: Record<string, string>
+  pluginsByProviderId?: Record<string, ProviderPluginDefinition>
 }
 
 function fmt(ts: string) {
@@ -38,6 +41,7 @@ export function StreamList({
   onSelectThread,
   emptyStateMessage,
   accentByProvider,
+  pluginsByProviderId,
 }: StreamListProps) {
   if (isLoading) {
     return <div className="stream-empty"><p>Loading local cache…</p></div>
@@ -55,7 +59,7 @@ export function StreamList({
     return (
       <>
         <div className="panel-toolbar">
-          <h2>Unread queue</h2>
+          <h2>Mimir Stream</h2>
           <span className="stream-item-meta">{groups.length} grouped conversations</span>
         </div>
         <div className="stream-scroll">
@@ -63,8 +67,8 @@ export function StreamList({
             <button
               type="button"
               key={g.id}
-              className={`stream-row stream-group${selectedThreadId === g.notifications[0]?.threadId ? ' is-selected' : ''}`}
-              onClick={() => onSelectThread(g.notifications[0]?.threadId ?? g.id)}
+              className={`stream-row stream-group${selectedThreadId === g.id ? ' is-selected' : ''}`}
+              onClick={() => onSelectThread(g.id)}
               style={{ '--provider-accent': accentByProvider[g.notifications[0]?.providerId ?? ''] ?? '#000000' } as CSSProperties}
             >
               <span className="stream-row-accent" aria-hidden="true" />
@@ -99,45 +103,47 @@ export function StreamList({
   }
 
   return (
-    <>
-      <div className="panel-toolbar">
-        <h2>Account feed</h2>
-        <span className="stream-item-meta">{notifications.length} cached messages</span>
-      </div>
-      <div className="stream-scroll">
-        {notifications.map((n) => (
-          <button
-            type="button"
-            key={n.id}
-            className={`stream-row stream-item${selectedThreadId === n.threadId ? ' is-selected' : ''}`}
-            onClick={() => onSelectThread(n.threadId)}
-            style={{ '--provider-accent': accentByProvider[n.providerId] ?? '#000000' } as CSSProperties}
-          >
-            <span className="stream-row-accent" aria-hidden="true" />
-            <div className="stream-avatar" aria-hidden="true">{toInitials(n.personLabel)}</div>
-            <div className="stream-row-content">
-              <header>
-                <div className="stream-copy">
-                  <h4>{n.direction === 'outgoing' ? `You replied · ${n.personLabel}` : n.personLabel}</h4>
-                  <p className="stream-headline">{n.title}</p>
-                </div>
+      <>
+        <div className="panel-toolbar">
+          <h2>Provider stream</h2>
+        </div>
+        <div className="stream-scroll">
+          {notifications.map((n) => {
+            const plugin = pluginsByProviderId?.[n.providerId]
+            const isSelected = selectedThreadId === n.threadId
+            const accent = accentByProvider[n.providerId] ?? '#000000'
 
-                <div className="stream-row-meta">
-                  {!n.read ? <span className="stream-unread-dot" aria-hidden="true" /> : null}
-                  <span className="stream-item-meta">{fmt(n.timestamp)}</span>
-                </div>
-              </header>
-
-              <p className="stream-body">{n.preview ?? n.body}</p>
-
-              <div className="stream-platforms">
-                <span className="pill">{n.platform}</span>
-                <span className="pill">{n.read ? 'read' : 'unread'}</span>
-              </div>
-            </div>
-          </button>
-        ))}
-      </div>
-    </>
-  )
+            return (
+              <Fragment key={n.id}>
+                {plugin?.renderStreamRow?.({
+                  provider: plugin.provider,
+                  notification: n,
+                  isSelected,
+                  accent,
+                  onSelect: () => onSelectThread(n.threadId),
+                }) ?? (
+                  <StreamRowBase
+                    accent={accent}
+                    avatarLabel={n.personLabel}
+                    title={n.direction === 'outgoing' ? `You replied · ${n.personLabel}` : n.personLabel}
+                    headline={n.title}
+                    preview={n.preview ?? n.body}
+                    badges={
+                      <>
+                        <Badge>{n.platform}</Badge>
+                        <Badge>{n.read ? 'Read' : 'Unread'}</Badge>
+                      </>
+                    }
+                    meta={fmt(n.timestamp)}
+                    unread={!n.read}
+                    selected={isSelected}
+                    onSelect={() => onSelectThread(n.threadId)}
+                  />
+                )}
+              </Fragment>
+            )
+          })}
+        </div>
+      </>
+    )
 }

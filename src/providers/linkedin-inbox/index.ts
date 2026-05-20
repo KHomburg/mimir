@@ -1,4 +1,10 @@
-import { ScenarioProvider } from './scenario-provider'
+import {
+  renderLinkedInSettingsPanel,
+  renderLinkedInStreamRow,
+  renderLinkedInThreadDetails,
+} from '../builtinProviderSurfaces'
+import { defineProviderPlugin } from '../provider-plugin'
+import { ScenarioProvider } from '../scenario-provider'
 
 export class LinkedInInboxProvider extends ScenarioProvider {
   constructor() {
@@ -42,4 +48,18 @@ export class LinkedInInboxProvider extends ScenarioProvider {
   }
 }
 
-export default new LinkedInInboxProvider()
+const provider = new LinkedInInboxProvider()
+
+export default defineProviderPlugin({
+  provider,
+  composer: {
+    label: 'Inbox reply',
+    helperText: 'Relationship-focused plugins can shape tone and prompts while still using core controls and styling.',
+    placeholder: 'Write a concise professional follow-up...',
+    submitLabel: 'Send message',
+    featureBadges: ['Profile context', 'Short-form reply', 'Follow-up'],
+  },
+  renderStreamRow: renderLinkedInStreamRow,
+  renderThreadDetails: renderLinkedInThreadDetails,
+  renderSettingsPanel: renderLinkedInSettingsPanel,
+})

@@ -1,19 +1,21 @@
 import type { IMimirProvider } from '../types/mimir'
+import { normalizeProviderModuleExport, type ProviderModule } from './provider-plugin'
 
-type ProviderModule = {
-  default?: IMimirProvider
-  provider?: IMimirProvider
-}
+const providerModules = import.meta.glob<ProviderModule>('./*/index.{ts,tsx}', { eager: true })
 
-const providerModules = import.meta.glob<ProviderModule>('./*Provider.ts', { eager: true })
-
-export const registeredProviders = Object.values(providerModules)
-  .flatMap((m) => {
-    const p = m.default ?? m.provider
-    return p ? [p] : []
+export const registeredProviderPlugins = Object.values(providerModules)
+  .flatMap((module) => {
+    const plugin = normalizeProviderModuleExport(module)
+    return plugin ? [plugin] : []
   })
-  .sort((a, b) => a.metadata.displayName.localeCompare(b.metadata.displayName))
+  .sort((a, b) => a.provider.metadata.displayName.localeCompare(b.provider.metadata.displayName))
+
+export const registeredProviders = registeredProviderPlugins.map((plugin) => plugin.provider)
 
 export function getProviderById(id: string): IMimirProvider | undefined {
-  return registeredProviders.find((p) => p.id === id)
+  return registeredProviders.find((provider) => provider.id === id)
+}
+
+export function getProviderPluginById(id: string) {
+  return registeredProviderPlugins.find((plugin) => plugin.provider.id === id)
 }

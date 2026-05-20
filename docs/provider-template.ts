@@ -1,4 +1,5 @@
 import { BaseProvider } from '../src/providers/base-provider'
+import { defineProviderPlugin } from '../src/providers/provider-plugin'
 import type {
   AuthToken,
   MimirFeedItem,
@@ -7,8 +8,8 @@ import type {
 } from '../src/types/mimir'
 
 /**
- * Copy this file into src/providers/ and rename it <YourPlatform>Provider.ts.
- * The registry auto-discovers files matching *Provider.ts via import.meta.glob.
+ * Copy this file into src/providers/<your-provider-slug>/index.ts.
+ * The registry auto-discovers provider folder entrypoints by their index.ts file via import.meta.glob.
  */
 export class ExampleProvider extends BaseProvider {
   private readonly accountId = 'example-account'
@@ -94,4 +95,8 @@ export class ExampleProvider extends BaseProvider {
   }
 }
 
-export default new ExampleProvider()
+const provider = new ExampleProvider()
+
+export default defineProviderPlugin({
+  provider,
+})

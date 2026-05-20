@@ -45,7 +45,7 @@ Provider Adapters -> Repository Cache -> Query Hooks -> React UI
 
 ## Extension model
 
-- New providers require only a new file in `src/providers/` that exports a default provider instance.
-- The registry discovers provider files via `import.meta.glob`.
+- New providers require only a new folder in `src/providers/` with an `index.ts` entrypoint that exports a default provider plugin.
+- The registry discovers provider entrypoints via `import.meta.glob`.
 - Cross-provider grouping relies on stable `threadId` and `personId` semantics.
 - Provider metadata also describes capabilities such as quick reply, read sync, or lite webview readiness so the shell can stay generic.

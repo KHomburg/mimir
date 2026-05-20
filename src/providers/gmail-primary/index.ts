@@ -1,4 +1,10 @@
-import { ScenarioProvider } from './scenario-provider'
+import {
+  renderGmailSettingsPanel,
+  renderGmailStreamRow,
+  renderGmailThreadDetails,
+} from '../builtinProviderSurfaces'
+import { defineProviderPlugin } from '../provider-plugin'
+import { ScenarioProvider } from '../scenario-provider'
 
 export class GmailPrimaryProvider extends ScenarioProvider {
   constructor() {
@@ -42,4 +48,18 @@ export class GmailPrimaryProvider extends ScenarioProvider {
   }
 }
 
-export default new GmailPrimaryProvider()
+const provider = new GmailPrimaryProvider()
+
+export default defineProviderPlugin({
+  provider,
+  composer: {
+    label: 'Email reply',
+    helperText: 'Email plugins can steer longer-form reply copy and formatting hints without changing the core shell.',
+    placeholder: 'Write the full email reply...',
+    submitLabel: 'Send email',
+    featureBadges: ['Formatting', 'Links', 'Reply chain'],
+  },
+  renderStreamRow: renderGmailStreamRow,
+  renderThreadDetails: renderGmailThreadDetails,
+  renderSettingsPanel: renderGmailSettingsPanel,
+})

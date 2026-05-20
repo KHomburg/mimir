@@ -66,10 +66,10 @@ Debug the app:
 
 ```
 src/
-  components/       Shell UI (Sidebar, StreamList, QuickReply, RustStatusCard)
+  components/       Shell UI (Sidebar, StreamList, ThreadDrawer, SettingsModal)
   hooks/            useNotifications · useAuth · useProviderPolling
   lib/              aggregator · messageRepository · bridge · runtime
-  providers/        *Provider.ts adapters (auto-registered via import.meta.glob)
+  providers/        provider folders with index.ts entrypoints (auto-registered via import.meta.glob)
   store/            Zustand UI state (active view, quick-reply draft)
   types/            Shared TypeScript contracts (IMimirProvider, MimirNotification…)
 src-tauri/
@@ -101,9 +101,9 @@ AGENTS.md            Generic agent guidance for tools that honor root agent file
 
 ## Adding a new provider
 
-1. Copy `docs/provider-template.ts` into `src/providers/<Name>Provider.ts`.
+1. Copy `docs/provider-template.ts` into `src/providers/<provider-slug>/index.ts`.
 2. Implement the four abstract methods.
-3. Export a default instance at the bottom of the file.
+3. Export a default plugin definition from the folder entrypoint.
 4. The registry picks it up automatically — no other file needs to change.
 
 ## Key conventions

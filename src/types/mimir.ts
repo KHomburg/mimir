@@ -1,4 +1,4 @@
-export type ProviderPlatform = 'slack' | 'linkedin' | 'gmail' | 'mock'
+export type ProviderPlatform = string
 export type MessageDirection = 'incoming' | 'outgoing'
 export type ProviderCapability =
   | 'oauth'
@@ -6,6 +6,7 @@ export type ProviderCapability =
   | 'quick-reply'
   | 'read-sync'
   | 'lite-webview'
+  | (string & {})
 
 export interface AuthToken {
   accessToken: string

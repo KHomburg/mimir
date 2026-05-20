@@ -7,8 +7,8 @@ interface SidebarProps {
   activeView: ActiveView
   totalUnread: number
   unreadByProvider: Record<string, number>
-  connectedProviderIds: string[]
   onSelect: (view: ActiveView) => void
+  onOpenSettings: () => void
 }
 
 export function Sidebar({
@@ -16,19 +16,17 @@ export function Sidebar({
   activeView,
   totalUnread,
   unreadByProvider,
-  connectedProviderIds,
   onSelect,
+  onOpenSettings,
 }: SidebarProps) {
-  const connected = new Set(connectedProviderIds)
-
   return (
     <aside className="shell-sidebar">
       <section className="brand">
         <div className="brand-mark">M</div>
         <div>
-          <p className="panel-label">Unified work stream</p>
+          <p className="panel-label">Unified stream</p>
           <h2>mimir</h2>
-          <p>Repository-first triage across every connected surface.</p>
+          <p>Open a provider stream, then slide in the full message when you need more detail.</p>
         </div>
       </section>
 
@@ -47,7 +45,7 @@ export function Sidebar({
               <strong>All Messages</strong>
               <span className="nav-count">{totalUnread}</span>
             </span>
-            <small>Unread across every connected account.</small>
+            <small>Unified stream across connected providers.</small>
           </span>
         </button>
       </section>
@@ -69,23 +67,18 @@ export function Sidebar({
                 <strong>{p.metadata.displayName}</strong>
                 <span className="nav-count">{unreadByProvider[p.id] ?? 0}</span>
               </span>
-              <small>{connected.has(p.id) ? 'Connected' : 'Disconnected'} · {p.platform}</small>
+              <small>{p.platform}</small>
             </span>
           </button>
         ))}
       </section>
 
-      <section className="sidebar-footer">
-        <span className="nav-group-title">Status</span>
-        <div className="sidebar-summary-row">
-          <span>Connected</span>
-          <strong>{connectedProviderIds.length}/{providers.length}</strong>
-        </div>
-        <div className="sidebar-summary-row">
-          <span>Unread</span>
-          <strong>{totalUnread}</strong>
-        </div>
-      </section>
+      <div className="sidebar-footer">
+        <button type="button" className="secondary-button settings-trigger" onClick={onOpenSettings}>
+          <span aria-hidden="true">⚙</span>
+          <span>Settings</span>
+        </button>
+      </div>
     </aside>
   )
 }

@@ -9,6 +9,11 @@ interface QuickReplyProps {
   onChange: (value: string) => void
   onSend: () => void
   isSending: boolean
+  label?: string
+  helperText?: string
+  placeholder?: string
+  submitLabel?: string
+  featureBadges?: string[]
 }
 
 export function QuickReply({
@@ -19,6 +24,11 @@ export function QuickReply({
   onChange,
   onSend,
   isSending,
+  label,
+  helperText,
+  placeholder,
+  submitLabel,
+  featureBadges = [],
 }: QuickReplyProps) {
   const disabled = !provider || !selectedThreadId || value.trim().length === 0 || isSending
 
@@ -26,7 +36,7 @@ export function QuickReply({
     <section className="panel quick-reply">
       <div className="quick-reply-header">
         <div>
-          <p className="panel-label">Quick reply</p>
+          <p className="panel-label">{label ?? 'Quick reply'}</p>
           <h3>
             {provider
               ? selectedThreadLabel
@@ -39,15 +49,24 @@ export function QuickReply({
       </div>
 
       <p className="subtitle quick-reply-note">
-        Markdown-friendly composer routed through the selected provider once account wiring is available.
+        {helperText ?? 'Markdown-friendly composer routed through the selected provider once account wiring is available.'}
       </p>
+      {featureBadges.length ? (
+        <div className="provider-badge-row quick-reply-badges">
+          {featureBadges.map((feature) => (
+            <span key={feature} className="pill">
+              {feature}
+            </span>
+          ))}
+        </div>
+      ) : null}
 
       <label className="field-label" htmlFor="quick-reply-textarea">Message</label>
       <textarea
         id="quick-reply-textarea"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Reply with markdown, links, or :emoji: shortcuts..."
+        placeholder={placeholder ?? 'Reply with markdown, links, or :emoji: shortcuts...'}
       />
       {value.trim() ? (
         <div className="reply-preview">
@@ -63,7 +82,7 @@ export function QuickReply({
           {selectedThreadId ? `Thread: ${selectedThreadId}` : 'Choose a thread from the stream to reply.'}
         </span>
         <button type="button" className="primary-button" disabled={disabled} onClick={onSend}>
-          {isSending ? 'Sending…' : 'Send reply'}
+          {isSending ? 'Sending…' : submitLabel ?? 'Send reply'}
         </button>
       </div>
     </section>

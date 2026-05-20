@@ -1,5 +1,6 @@
 import { useMemo, useState, type CSSProperties } from 'react'
 import type { VaultMode } from '../lib/accountVault'
+import type { ProviderPluginDefinition } from '../providers/provider-plugin'
 import type { IMimirProvider } from '../types/mimir'
 
 interface AccountCenterProps {
@@ -16,6 +17,7 @@ interface AccountCenterProps {
   busyProviderId?: string
   lastCallback?: string
   callbackError?: string
+  pluginsByProviderId?: Record<string, ProviderPluginDefinition>
 }
 
 function titleForVault(mode: VaultMode): string {
@@ -38,6 +40,7 @@ export function AccountCenter({
   busyProviderId,
   lastCallback,
   callbackError,
+  pluginsByProviderId,
 }: AccountCenterProps) {
   const [passphrase, setPassphrase] = useState('')
   const connected = useMemo(() => new Set(connectedProviderIds), [connectedProviderIds])
@@ -46,7 +49,7 @@ export function AccountCenter({
   return (
     <section className="panel account-center">
       <div className="panel-toolbar">
-        <h2>Accounts</h2>
+        <h2>Integrations</h2>
         <span className={`status-pill${vaultMode === 'unlocked' ? ' ok' : ' browser'}`}>
           {titleForVault(vaultMode)}
         </span>
@@ -104,6 +107,7 @@ export function AccountCenter({
         {providers.map((provider) => {
           const isConnected = connected.has(provider.id)
           const capabilities = provider.metadata.capabilities.join(' · ')
+          const plugin = pluginsByProviderId?.[provider.id]
 
           return (
             <article
@@ -124,6 +128,19 @@ export function AccountCenter({
               </header>
 
               <p className="account-helper">{capabilities}</p>
+              {plugin?.renderSettingsPanel ? (
+                <div className="account-plugin-panel">
+                  {plugin.renderSettingsPanel({
+                    provider,
+                    isConnected,
+                    unreadCount: unreadByProvider[provider.id] ?? 0,
+                    isBusy: busyProviderId === provider.id,
+                    canManageAccounts,
+                    onConnect: () => onConnect(provider),
+                    onDisconnect: () => onDisconnect(provider.id),
+                  })}
+                </div>
+              ) : null}
               <div className="account-card-footer">
                 <span className="stream-item-meta">{unreadByProvider[provider.id] ?? 0} unread</span>
                 <button

@@ -1,4 +1,10 @@
-import { ScenarioProvider } from './scenario-provider'
+import {
+  renderMockSettingsPanel,
+  renderMockStreamRow,
+  renderMockThreadDetails,
+} from '../builtinProviderSurfaces'
+import { defineProviderPlugin } from '../provider-plugin'
+import { ScenarioProvider } from '../scenario-provider'
 
 export class MockProvider extends ScenarioProvider {
   constructor() {
@@ -42,4 +48,18 @@ export class MockProvider extends ScenarioProvider {
   }
 }
 
-export default new MockProvider()
+const provider = new MockProvider()
+
+export default defineProviderPlugin({
+  provider,
+  composer: {
+    label: 'Demo reply',
+    helperText: 'Exercise the provider plugin contract with local echoes and lightweight markdown.',
+    placeholder: 'Send a demo reply to the mock thread...',
+    submitLabel: 'Send demo reply',
+    featureBadges: ['Markdown', 'Local echo', 'Read sync'],
+  },
+  renderStreamRow: renderMockStreamRow,
+  renderThreadDetails: renderMockThreadDetails,
+  renderSettingsPanel: renderMockSettingsPanel,
+})

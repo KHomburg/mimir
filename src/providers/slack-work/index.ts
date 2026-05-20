@@ -1,4 +1,10 @@
-import { ScenarioProvider } from './scenario-provider'
+import {
+  renderSlackSettingsPanel,
+  renderSlackStreamRow,
+  renderSlackThreadDetails,
+} from '../builtinProviderSurfaces'
+import { defineProviderPlugin } from '../provider-plugin'
+import { ScenarioProvider } from '../scenario-provider'
 
 export class SlackWorkProvider extends ScenarioProvider {
   constructor() {
@@ -42,4 +48,18 @@ export class SlackWorkProvider extends ScenarioProvider {
   }
 }
 
-export default new SlackWorkProvider()
+const provider = new SlackWorkProvider()
+
+export default defineProviderPlugin({
+  provider,
+  composer: {
+    label: 'Thread reply',
+    helperText: 'Slack-style plugins can tune the composer for short replies, mentions, and quick thread follow-ups.',
+    placeholder: 'Reply in thread, mention teammates, or paste context...',
+    submitLabel: 'Send to Slack',
+    featureBadges: ['Mentions', 'Emoji', 'Thread reply'],
+  },
+  renderStreamRow: renderSlackStreamRow,
+  renderThreadDetails: renderSlackThreadDetails,
+  renderSettingsPanel: renderSlackSettingsPanel,
+})

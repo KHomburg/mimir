@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MockProvider } from '../src/providers/MockProvider'
+import { MockProvider } from '../src/providers/mock-focus'
 
 describe('ScenarioProvider-based adapters', () => {
   it('creates incoming notifications with normalized direction metadata', async () => {
