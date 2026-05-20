@@ -1,9 +1,9 @@
 ---
-description: "Use when editing Rust commands, Tauri plugins, capabilities, tauri.conf.json, or secure storage flows."
+description: "Use when editing Rust commands, Tauri plugins, capabilities, src-tauri/tauri.conf.json, or secure storage flows."
 applyTo:
   - "src-tauri/**/*.rs"
   - "src-tauri/capabilities/**/*.json"
-  - "tauri.conf.json"
+  - "src-tauri/tauri.conf.json"
 ---
 # Tauri security rules
 

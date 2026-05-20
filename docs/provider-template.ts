@@ -1,5 +1,10 @@
 import { BaseProvider } from '../src/providers/base-provider'
-import type { AuthToken, MimirFeedItem, MimirNotification } from '../src/types/mimir'
+import type {
+  AuthToken,
+  MimirFeedItem,
+  MimirNotification,
+  SendMessageResult,
+} from '../src/types/mimir'
 
 /**
  * Copy this file into src/providers/ and rename it <YourPlatform>Provider.ts.
@@ -12,6 +17,10 @@ export class ExampleProvider extends BaseProvider {
     super('example-account', 'gmail', {
       displayName: 'Example Gmail',
       icon: 'G',
+      summary: 'Example provider that shows the expected metadata and normalization contract.',
+      accent: '#ea4335',
+      capabilities: ['oauth', 'activity-feed', 'quick-reply', 'read-sync'],
+      defaultConnected: false,
     })
   }
 
@@ -37,6 +46,7 @@ export class ExampleProvider extends BaseProvider {
         personId: 'user@example.com',
         personLabel: 'Taylor Example',
         read: false,
+        direction: 'incoming',
       },
     ]
   }
@@ -53,12 +63,34 @@ export class ExampleProvider extends BaseProvider {
       actorId: n.personId,
       actorLabel: n.personLabel,
       read: n.read,
+      direction: n.direction,
     }))
   }
 
-  async sendMessage(_threadId: string, _content: string): Promise<boolean> {
+  async markAsRead(notificationIds: string[]): Promise<void> {
+    // Keep provider read-state sync close to the adapter or a Rust command.
+    void notificationIds
+  }
+
+  async sendMessage(threadId: string, content: string): Promise<SendMessageResult> {
     // Prefer a Rust command for the actual HTTP POST.
-    return true
+    return {
+      accepted: true,
+      notification: {
+        id: `${this.accountId}:reply:${Date.now()}`,
+        providerId: this.id,
+        platform: this.platform,
+        title: 'Reply sent',
+        body: content,
+        preview: content,
+        timestamp: new Date().toISOString(),
+        threadId,
+        personId: 'user@example.com',
+        personLabel: 'Taylor Example',
+        read: true,
+        direction: 'outgoing',
+      },
+    }
   }
 }
 

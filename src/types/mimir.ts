@@ -1,15 +1,27 @@
 export type ProviderPlatform = 'slack' | 'linkedin' | 'gmail' | 'mock'
+export type MessageDirection = 'incoming' | 'outgoing'
+export type ProviderCapability =
+  | 'oauth'
+  | 'activity-feed'
+  | 'quick-reply'
+  | 'read-sync'
+  | 'lite-webview'
 
 export interface AuthToken {
   accessToken: string
   refreshToken?: string
   expiresAt?: string
   scope?: string[]
+  accountLabel?: string
 }
 
 export interface ProviderMetadata {
   displayName: string
   icon: string
+  summary: string
+  accent: string
+  capabilities: ProviderCapability[]
+  defaultConnected?: boolean
 }
 
 export interface MimirNotification {
@@ -24,6 +36,7 @@ export interface MimirNotification {
   personId?: string
   personLabel: string
   read: boolean
+  direction: MessageDirection
 }
 
 export interface MimirFeedItem {
@@ -36,6 +49,12 @@ export interface MimirFeedItem {
   actorId?: string
   actorLabel: string
   read: boolean
+  direction: MessageDirection
+}
+
+export interface SendMessageResult {
+  accepted: boolean
+  notification?: MimirNotification
 }
 
 export interface IMimirProvider {
@@ -45,5 +64,6 @@ export interface IMimirProvider {
   auth(): Promise<AuthToken>
   getNotifications(): Promise<MimirNotification[]>
   getActivityFeed(): Promise<MimirFeedItem[]>
-  sendMessage(threadId: string, content: string): Promise<boolean>
+  markAsRead(notificationIds: string[]): Promise<void>
+  sendMessage(threadId: string, content: string): Promise<SendMessageResult>
 }

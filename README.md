@@ -17,21 +17,51 @@ Desktop-first notification aggregation for Slack, LinkedIn, Gmail, and future ad
 
 ## Quick start
 
+
+### Prerequisites
+
+**For web preview** (no Rust required):
+- Node.js ≥18
+- npm ≥9
+
+**For desktop shell** (full experience):
+- All of the above, plus:
+- Rust 1.70+ (install via `rustup`)
+- Xcode command-line tools (macOS) or Visual C++ build tools (Windows)
+
+### Development
+
+**Web preview** (instant feedback, no Rust):
 ```bash
 npm install
-npm run dev          # web preview (no Rust required)
-npm run typecheck    # type-check all TS
-npm run test         # run unit + integration tests
-npm run lint         # run ESLint
+npm run dev          # opens http://localhost:5173 with hot reload
 ```
 
-For the full desktop shell (requires Rust toolchain):
+**Desktop shell**:
+```bash
+# One-time: install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+
+# Then start dev server
+npm run tauri:dev    # builds Rust, runs app with hot reload
+```
+
+### Development workflow
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh   # one-time
-npm run tauri:dev
+npm run lint         # ESLint
+npm run typecheck    # TypeScript check
+npm run test         # Vitest unit + integration tests
+
+# E2E tests (requires app running in another terminal)
+npm run tauri:dev    # terminal 1
+npm run test:e2e     # terminal 2
 ```
 
+Debug the app:
+- **Web**: Open browser DevTools
+- **Desktop**: Press `Ctrl+Shift+I` (or `Cmd+Shift+I` on macOS)
 ## Repo layout
 
 ```
@@ -46,13 +76,18 @@ src-tauri/
   src/main.rs       Plugin registration & bootstrap
   src/commands.rs   TypeScript-callable Rust functions (health check, OAuth bridge)
   capabilities/     Tauri 2 permission surface
+  tauri.conf.json   Tauri config in the standard app-directory location
 docs/
   ARCHITECTURE.md   System shape, data flow, extension model
   API_STANDARDS.md  CORS posture, storage rules, normalization conventions
+  FIRST_SLICE.md    What the current app already implements
+  MIGRATION.md      Database schema, dev setup, building, shipping, deployment
+  SECURE_STORAGE.md Browser vs Tauri token-handling model
   provider-template.ts  Copy-and-customise starting point for new adapters
 tests/
   aggregatorLogic.test.ts   Sort + group logic across providers
   tauriBridge.test.ts       Mocked IPC integration tests
+  scenarioProvider.test.ts  Provider send/reply and direction metadata
 .github/
   copilot-instructions.md          Project-wide agent guidance
   instructions/*.instructions.md  File-scoped adapter and security rules
@@ -73,7 +108,153 @@ AGENTS.md            Generic agent guidance for tools that honor root agent file
 
 ## Key conventions
 
-- Providers live in `src/providers/` and are auto-registered when the filename ends in `Provider.ts`.
-- The UI reads notifications from the repository layer (`src/lib/messageRepository.ts`), never directly from provider fetch results.
-- Sensitive auth and API work belongs in Rust commands whenever possible.
-- Tokens must never be written to SQLite in plaintext; use Stronghold.
+
+## Building for production
+
+### Web bundle
+```bash
+npm run build
+```
+Outputs to `dist/`. Deploy to any static host (Netlify, Vercel, S3, GitHub Pages).
+
+### Desktop application
+
+**macOS:**
+```bash
+npm run tauri:build
+```
+Produces:
+- DMG installer: `src-tauri/target/release/bundle/dmg/mimir_*.dmg`
+- App bundle: `src-tauri/target/release/bundle/macos/mimir.app`
+
+**Windows:**
+```bash
+npm run tauri:build
+```
+Produces:
+- MSI installer: `src-tauri/target/release/bundle/msi/mimir_*.msi`
+- Portable executable: `src-tauri/target/release/bundle/nsis/mimir Setup *.exe`
+
+**Linux:**
+```bash
+npm run tauri:build
+```
+Produces:
+- AppImage: `src-tauri/target/release/bundle/appimage/mimir_*.AppImage`
+- Debian package: `src-tauri/target/release/bundle/deb/mimir_*.deb`
+
+## Shipping & Distribution
+
+### Version management
+
+Always update versions in lockstep:
+1. `package.json`: `"version": "X.Y.Z"`
+2. `src-tauri/Cargo.toml`: `version = "X.Y.Z"`
+3. `src-tauri/tauri.conf.json`: `"version": "X.Y.Z"`
+
+Use [semantic versioning](https://semver.org/):
+- **MAJOR**: Breaking provider API changes or storage format
+- **MINOR**: New features or providers
+- **PATCH**: Bug fixes
+
+### macOS signing & distribution
+
+**Code signing** (requires Apple Developer Certificate):
+```bash
+export APPLE_CERTIFICATE_PASSWORD="<password>"
+export APPLE_SIGNING_IDENTITY="<cert-id>"
+npm run tauri:build -- --sign
+```
+
+**Notarization** (required for macOS 10.15+):
+```bash
+export APPLE_ID="<apple-id>"
+export APPLE_PASSWORD="<app-specific-password>"
+# Tauri handles notarization automatically during build
+npm run tauri:build -- --sign
+```
+
+**Distribute:**
+- Host DMG on your website
+- Submit to Mac App Store via Transporter
+- Use Sparkle framework for auto-updates
+
+### Windows distribution
+
+**Code signing** (optional but recommended):
+```bash
+npm run tauri:build -- --sign
+```
+Requires a code signing certificate.
+
+**Distribute:**
+- Host MSI on your website
+- Submit to Microsoft Store via Partner Center
+- Use Windows Update or Tauri's updater plugin
+
+### Web deployment
+
+**Deploy to Vercel:**
+```bash
+npm run build && vercel
+```
+
+**Deploy to Netlify:**
+```bash
+npm run build && netlify deploy dist
+```
+
+**Deploy to S3:**
+```bash
+npm run build && aws s3 sync dist s3://my-bucket
+```
+
+**Cache strategy:**
+- `index.html`: No cache or 5 min TTL
+- `dist/assets/*`: 1 year TTL (Vite adds content hash to filenames)
+
+### Database migrations in production
+
+When adding a new migration to `src-tauri/src/main.rs`:
+1. Add a new `Migration` struct to `message_migrations()`
+2. Increment the `version` number
+3. Write SQL in the `sql` field
+4. Test thoroughly — migrations run on startup; failed SQL crashes the app
+5. Test the migration path by running the old version first, then upgrading
+
+See `docs/MIGRATION.md` for detailed migration strategy and rollback procedures.
+
+### CI/CD automation
+
+Example GitHub Actions workflow:
+```yaml
+name: Build & Release
+on:
+  push:
+    tags: ['v*']
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: npm install
+      - run: npm run tauri:build
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: src-tauri/target/release/bundle/**/*
+```
+
+## Documentation
+
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** — System design, data flow, extension model
+- **[API_STANDARDS.md](docs/API_STANDARDS.md)** — CORS, storage, normalization rules
+- **[FIRST_SLICE.md](docs/FIRST_SLICE.md)** — Current implementation status
+- **[MIGRATION.md](docs/MIGRATION.md)** — Database schema, detailed dev/build/ship guide
+- **[SECURE_STORAGE.md](docs/SECURE_STORAGE.md)** — Token handling for browser vs Tauri
+- **[provider-template.ts](docs/provider-template.ts)** — Template for new providers

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { buildAggregatedStream } from '../lib/aggregator'
 import type { ActiveView } from '../store/uiStore'
 import type { MimirNotification } from '../types/mimir'
@@ -6,6 +7,10 @@ interface StreamListProps {
   view: ActiveView
   notifications: MimirNotification[]
   isLoading: boolean
+  selectedThreadId?: string
+  onSelectThread: (threadId: string) => void
+  emptyStateMessage: string
+  accentByProvider: Record<string, string>
 }
 
 function fmt(ts: string) {
@@ -14,14 +19,33 @@ function fmt(ts: string) {
   }).format(new Date(ts))
 }
 
-export function StreamList({ view, notifications, isLoading }: StreamListProps) {
+function toInitials(label: string) {
+  const initials = label
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('')
+
+  return initials || '?'
+}
+
+export function StreamList({
+  view,
+  notifications,
+  isLoading,
+  selectedThreadId,
+  onSelectThread,
+  emptyStateMessage,
+  accentByProvider,
+}: StreamListProps) {
   if (isLoading) {
     return <div className="stream-empty"><p>Loading local cache…</p></div>
   }
   if (notifications.length === 0) {
     return (
       <div className="stream-empty">
-        <p>No cached notifications yet. The mock provider seeds the stream automatically.</p>
+        <p>{emptyStateMessage}</p>
       </div>
     )
   }
@@ -31,28 +55,43 @@ export function StreamList({ view, notifications, isLoading }: StreamListProps) 
     return (
       <>
         <div className="panel-toolbar">
-          <h2>Aggregated Stream</h2>
+          <h2>Unread queue</h2>
           <span className="stream-item-meta">{groups.length} grouped conversations</span>
         </div>
         <div className="stream-scroll">
           {groups.map((g) => (
-            <article key={g.id} className="stream-group">
-              <header>
-                <div>
-                  <h3>{g.personLabel}</h3>
-                  <p className="stream-group-meta">
-                    {g.notifications.length} messages · latest {fmt(g.timestamp)}
-                  </p>
+            <button
+              type="button"
+              key={g.id}
+              className={`stream-row stream-group${selectedThreadId === g.notifications[0]?.threadId ? ' is-selected' : ''}`}
+              onClick={() => onSelectThread(g.notifications[0]?.threadId ?? g.id)}
+              style={{ '--provider-accent': accentByProvider[g.notifications[0]?.providerId ?? ''] ?? '#000000' } as CSSProperties}
+            >
+              <span className="stream-row-accent" aria-hidden="true" />
+              <div className="stream-avatar" aria-hidden="true">{toInitials(g.personLabel)}</div>
+              <div className="stream-row-content">
+                <header>
+                  <div className="stream-copy">
+                    <h3>{g.personLabel}</h3>
+                    <p className="stream-headline">{g.notifications[0]?.title}</p>
+                  </div>
+
+                  <div className="stream-row-meta">
+                    {g.notifications.some((item) => !item.read) ? <span className="stream-unread-dot" aria-hidden="true" /> : null}
+                    <span className="stream-item-meta">{fmt(g.timestamp)}</span>
+                  </div>
+                </header>
+
+                <p className="stream-body">{g.notifications[0]?.preview ?? g.notifications[0]?.body}</p>
+
+                <div className="stream-platforms">
+                  <span className="pill">{g.notifications.length} messages</span>
+                  {g.platforms.map((pl) => (
+                    <span key={`${g.id}:${pl}`} className="pill">{pl}</span>
+                  ))}
                 </div>
-                <span className="status-pill">{g.notifications[0]?.read ? 'Read' : 'Unread'}</span>
-              </header>
-              <p className="stream-body">{g.notifications[0]?.body}</p>
-              <div className="stream-platforms">
-                {g.platforms.map((pl) => (
-                  <span key={`${g.id}:${pl}`} className="pill">{pl}</span>
-                ))}
               </div>
-            </article>
+            </button>
           ))}
         </div>
       </>
@@ -62,23 +101,41 @@ export function StreamList({ view, notifications, isLoading }: StreamListProps) 
   return (
     <>
       <div className="panel-toolbar">
-        <h2>Account Feed</h2>
+        <h2>Account feed</h2>
         <span className="stream-item-meta">{notifications.length} cached messages</span>
       </div>
       <div className="stream-scroll">
         {notifications.map((n) => (
-          <article key={n.id} className="stream-item">
-            <header>
-              <div>
-                <h4>{n.title}</h4>
-                <p className="stream-item-meta">{n.personLabel} · {fmt(n.timestamp)}</p>
+          <button
+            type="button"
+            key={n.id}
+            className={`stream-row stream-item${selectedThreadId === n.threadId ? ' is-selected' : ''}`}
+            onClick={() => onSelectThread(n.threadId)}
+            style={{ '--provider-accent': accentByProvider[n.providerId] ?? '#000000' } as CSSProperties}
+          >
+            <span className="stream-row-accent" aria-hidden="true" />
+            <div className="stream-avatar" aria-hidden="true">{toInitials(n.personLabel)}</div>
+            <div className="stream-row-content">
+              <header>
+                <div className="stream-copy">
+                  <h4>{n.direction === 'outgoing' ? `You replied · ${n.personLabel}` : n.personLabel}</h4>
+                  <p className="stream-headline">{n.title}</p>
+                </div>
+
+                <div className="stream-row-meta">
+                  {!n.read ? <span className="stream-unread-dot" aria-hidden="true" /> : null}
+                  <span className="stream-item-meta">{fmt(n.timestamp)}</span>
+                </div>
+              </header>
+
+              <p className="stream-body">{n.preview ?? n.body}</p>
+
+              <div className="stream-platforms">
+                <span className="pill">{n.platform}</span>
+                <span className="pill">{n.read ? 'read' : 'unread'}</span>
               </div>
-              <span className={`status-pill${n.read ? ' ok' : ' pending'}`}>
-                {n.read ? 'Read' : 'Unread'}
-              </span>
-            </header>
-            <p className="stream-body">{n.body}</p>
-          </article>
+            </div>
+          </button>
         ))}
       </div>
     </>

@@ -37,7 +37,7 @@ Read these first before making structural changes:
 ## When changing specific areas
 - **Providers**: update provider code, registry behavior, and tests together when contracts change.
 - **Aggregation**: keep sorting/grouping logic in pure helpers and protect it with deterministic tests.
-- **Rust bridge**: update `src-tauri/src/main.rs`, `src-tauri/src/commands.rs`, `src-tauri/capabilities/default.json`, and `tauri.conf.json` together.
+- **Rust bridge**: update `src-tauri/src/main.rs`, `src-tauri/src/commands.rs`, `src-tauri/capabilities/default.json`, and `src-tauri/tauri.conf.json` together.
 - **Frontend shell**: keep state boundaries clean: TanStack Query for cached/server-like state, Zustand for UI-only state.
 
 ## Validation

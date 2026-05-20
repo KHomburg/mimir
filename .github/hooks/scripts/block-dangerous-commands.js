@@ -4,10 +4,11 @@ const chunks = []
 
 process.stdin.on('data', (chunk) => chunks.push(chunk))
 process.stdin.on('end', () => {
-  let payload = {}
+  const raw = Buffer.concat(chunks).toString('utf8')
+  let payload
 
   try {
-    payload = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
+    payload = JSON.parse(raw || '{}')
   } catch {
     process.stdout.write(JSON.stringify({ continue: true }))
     return

@@ -17,7 +17,8 @@ const INIT_SQL = `
     thread_id TEXT NOT NULL,
     person_id TEXT,
     person_label TEXT NOT NULL,
-    read INTEGER NOT NULL DEFAULT 0
+    read INTEGER NOT NULL DEFAULT 0,
+    direction TEXT NOT NULL DEFAULT 'incoming'
   )
 `
 
@@ -33,6 +34,7 @@ interface MessageRow {
   person_id: string | null
   person_label: string
   read: number
+  direction: MimirNotification['direction']
 }
 
 type SqlDatabase = Awaited<ReturnType<typeof Database.load>>
@@ -73,6 +75,10 @@ class SqlMessageRepository implements MessageRepository {
   async init() {
     const db = await this.getDb()
     await db.execute(INIT_SQL)
+    const columns = await db.select<Array<{ name: string }>>('PRAGMA table_info(messages)')
+    if (!columns.some((column) => column.name === 'direction')) {
+      await db.execute("ALTER TABLE messages ADD COLUMN direction TEXT NOT NULL DEFAULT 'incoming'")
+    }
   }
 
   async upsertNotifications(notifications: MimirNotification[]) {
@@ -80,9 +86,22 @@ class SqlMessageRepository implements MessageRepository {
     for (const n of notifications) {
       await db.execute(
         `INSERT OR REPLACE INTO messages
-           (id,provider_id,platform,title,body,preview,timestamp,thread_id,person_id,person_label,read)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-        [n.id,n.providerId,n.platform,n.title,n.body,n.preview??null,n.timestamp,n.threadId,n.personId??null,n.personLabel,n.read?1:0],
+           (id,provider_id,platform,title,body,preview,timestamp,thread_id,person_id,person_label,read,direction)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+        [
+          n.id,
+          n.providerId,
+          n.platform,
+          n.title,
+          n.body,
+          n.preview ?? null,
+          n.timestamp,
+          n.threadId,
+          n.personId ?? null,
+          n.personLabel,
+          n.read ? 1 : 0,
+          n.direction,
+        ],
       )
     }
   }
@@ -122,6 +141,7 @@ function mapRow(r: MessageRow): MimirNotification {
     personId: r.person_id ?? undefined,
     personLabel: r.person_label,
     read: r.read === 1,
+    direction: r.direction,
   }
 }
 

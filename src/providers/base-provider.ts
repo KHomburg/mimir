@@ -5,6 +5,7 @@ import type {
   MimirNotification,
   ProviderMetadata,
   ProviderPlatform,
+  SendMessageResult,
 } from '../types/mimir'
 
 export abstract class BaseProvider implements IMimirProvider {
@@ -21,5 +22,6 @@ export abstract class BaseProvider implements IMimirProvider {
   abstract auth(): Promise<AuthToken>
   abstract getNotifications(): Promise<MimirNotification[]>
   abstract getActivityFeed(): Promise<MimirFeedItem[]>
-  abstract sendMessage(threadId: string, content: string): Promise<boolean>
+  abstract markAsRead(notificationIds: string[]): Promise<void>
+  abstract sendMessage(threadId: string, content: string): Promise<SendMessageResult>
 }

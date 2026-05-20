@@ -24,7 +24,7 @@
 
 - Never store tokens, refresh tokens, API keys, or session secrets in SQLite or Zustand.
 - Prefer Rust commands for sensitive fetch flows to avoid CORS problems and to keep credentials out of Webview memory.
-- When touching Tauri permissions or plugins, update `src-tauri/capabilities/default.json` and `tauri.conf.json` together.
+- When touching Tauri permissions or plugins, update `src-tauri/capabilities/default.json` and `src-tauri/tauri.conf.json` together.
 - Deep-link callbacks must validate the `mimir://` scheme before any downstream handling.
 
 ## Build and test

@@ -11,7 +11,7 @@ pub struct HealthCheckResponse {
 pub fn health_check() -> HealthCheckResponse {
     HealthCheckResponse {
         status: "ok",
-        message: "Rust bridge ready for secure storage, polling, and privileged API work.",
+        message: "Rust bridge ready for secure storage, background sync ticks, and privileged API work.",
     }
 }
 
