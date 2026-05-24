@@ -36,11 +36,11 @@
     },
     "deep-link": {
       "desktop": {
-        "schemes": ["mimir"]
+        "schemes": ["mimir", "io.mimir.app"]
       },
       "mobile": [
         {
-          "scheme": ["mimir"],
+          "scheme": ["mimir", "io.mimir.app"],
           "appLink": false
         }
       ]

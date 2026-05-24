@@ -20,7 +20,7 @@ describe('bridge helpers', () => {
     expect(invokeMock).toHaveBeenCalledWith('health_check')
   })
 
-  it('validates mimir:// scheme before invoking Rust', async () => {
+  it('accepts the legacy mimir:// callback scheme', async () => {
     invokeMock.mockResolvedValue('mimir://oauth/callback?code=123')
     await expect(storeOAuthCallback('mimir://oauth/callback?code=123')).resolves.toBe(
       'mimir://oauth/callback?code=123',
@@ -30,9 +30,19 @@ describe('bridge helpers', () => {
     })
   })
 
-  it('rejects non-mimir URLs without calling Rust', async () => {
+  it('accepts the Gmail-safe desktop redirect scheme', async () => {
+    invokeMock.mockResolvedValue('io.mimir.app:/oauth2redirect?code=123')
+    await expect(storeOAuthCallback('io.mimir.app:/oauth2redirect?code=123')).resolves.toBe(
+      'io.mimir.app:/oauth2redirect?code=123',
+    )
+    expect(invokeMock).toHaveBeenCalledWith('store_oauth_callback', {
+      url: 'io.mimir.app:/oauth2redirect?code=123',
+    })
+  })
+
+  it('rejects non-app URLs without calling Rust', async () => {
     await expect(storeOAuthCallback('https://attacker.com/steal')).rejects.toThrow(
-      'OAuth callbacks must use the mimir:// scheme.',
+      'OAuth callbacks must use a registered app redirect scheme.',
     )
     expect(invokeMock).not.toHaveBeenCalled()
   })

@@ -223,7 +223,7 @@ export function renderGmailSettingsPanel({ isConnected, unreadCount }: ProviderS
       <p className="account-helper">
         {isConnected
           ? `${unreadCount} unread email updates are available in the Gmail stream.`
-          : 'Connect Gmail to sync threads and open the full message in the side panel.'}
+          : 'Connect Gmail in the desktop shell to run live OAuth, sync inbox threads, and reply from the side panel.'}
       </p>
     </>
   )

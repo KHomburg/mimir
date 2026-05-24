@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getCurrent, onOpenUrl } from '@tauri-apps/plugin-deep-link'
 import { storeOAuthCallback } from '../lib/bridge'
+import { publishOAuthCallback } from '../lib/oauthCallbacks'
 import { isTauriRuntime } from '../lib/runtime'
 
 export function useOAuthCallbacks() {
@@ -18,6 +19,7 @@ export function useOAuthCallbacks() {
         try {
           const stored = await storeOAuthCallback(url)
           if (!cancelled) {
+            publishOAuthCallback(stored)
             setLastCallback(stored)
             setCallbackError(undefined)
           }

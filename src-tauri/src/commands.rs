@@ -1,4 +1,5 @@
 use serde::Serialize;
+use url::Url;
 
 #[derive(Serialize)]
 pub struct HealthCheckResponse {
@@ -20,8 +21,10 @@ pub fn health_check() -> HealthCheckResponse {
 /// raw URL in Webview memory beyond this call.
 #[tauri::command]
 pub fn store_oauth_callback(url: String) -> Result<String, String> {
-    if !url.starts_with("mimir://") {
-        return Err("Only mimir:// callback URLs are accepted".into());
+    let parsed = Url::parse(&url).map_err(|_| "OAuth callback URL is invalid".to_string())?;
+    if !matches!(parsed.scheme(), "mimir" | "io.mimir.app") {
+        return Err("Only registered app callback URLs are accepted".into());
     }
+
     Ok(url)
 }

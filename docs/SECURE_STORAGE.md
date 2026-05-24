@@ -11,7 +11,7 @@
 ### Tauri desktop
 - Tokens are stored in Stronghold using `@tauri-apps/plugin-stronghold`
 - The user unlocks the vault with a local passphrase
-- OAuth callbacks are validated against the `mimir://` scheme before use
+- OAuth callbacks are validated against registered app schemes before use
 
 ## Why this split exists
 
@@ -23,9 +23,9 @@
 
 1. User unlocks the local vault in desktop mode.
 2. User connects a provider.
-3. The provider returns an auth token object.
-4. The token is written to Stronghold instead of SQLite.
-5. Any incoming `mimir://` callback is validated and surfaced to the app.
+3. Gmail opens the system browser and waits for an `io.mimir.app:/oauth2redirect` callback.
+4. The provider exchanges the returned code for tokens and writes them to Stronghold instead of SQLite.
+5. Incoming app callbacks are validated and surfaced to the app.
 
 ## Rules
 

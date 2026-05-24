@@ -18,7 +18,7 @@ export class SlackWorkProvider extends ScenarioProvider {
         summary: 'Workspace messages and thread follow-ups from your work Slack.',
         accent: '#4a154b',
         capabilities: ['oauth', 'activity-feed', 'quick-reply', 'read-sync'],
-        defaultConnected: true,
+        defaultConnected: false,
       },
       scope: ['channels:history', 'chat:write'],
       blueprints: [

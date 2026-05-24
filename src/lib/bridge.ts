@@ -17,8 +17,9 @@ export async function getRustHealth(): Promise<RustHealth> {
 }
 
 export async function storeOAuthCallback(url: string): Promise<string> {
-  if (!url.startsWith('mimir://')) {
-    throw new Error('OAuth callbacks must use the mimir:// scheme.')
+  const protocol = new URL(url).protocol
+  if (!['mimir:', 'io.mimir.app:'].includes(protocol)) {
+    throw new Error('OAuth callbacks must use a registered app redirect scheme.')
   }
   if (!isTauriRuntime()) return url
   return invoke<string>('store_oauth_callback', { url })

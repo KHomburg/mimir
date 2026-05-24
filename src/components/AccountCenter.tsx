@@ -84,7 +84,7 @@ export function AccountCenter({
           <div className="vault-actions">
             <p className="subtitle">
               {vaultMode === 'browser-preview'
-                ? 'Preview mode seeds demo providers automatically and keeps credentials ephemeral.'
+                ? 'Preview mode auto-connects the demo provider and keeps any credentials ephemeral.'
                 : 'Provider tokens are now persisted in Stronghold and can survive app restarts.'}
             </p>
             {vaultMode === 'unlocked' ? (

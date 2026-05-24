@@ -13,7 +13,7 @@ This repository now implements the first usable mimir slice around the original 
 ### Account tabs and onboarding
 - Dynamic provider tabs from `src/providers/*Provider.ts`
 - Secure-account command center with connect / disconnect actions
-- Browser-preview mode auto-seeds demo accounts for local development
+- Browser-preview mode auto-seeds the demo account for local development
 - Tauri mode can unlock Stronghold-backed token storage with a local passphrase
 
 ### Providers
@@ -22,7 +22,8 @@ This repository now implements the first usable mimir slice around the original 
 - `GmailPrimaryProvider`
 - `LinkedInInboxProvider`
 
-All current providers are scenario-backed adapters that simulate real activity while preserving the final adapter contract.
+Most current providers are scenario-backed adapters that simulate real activity while preserving the final adapter contract.
+`GmailPrimaryProvider` now uses a live OAuth + Gmail API path when the desktop shell is running with `VITE_GMAIL_OAUTH_CLIENT_ID` configured.
 
 ### Messaging
 - Quick reply for connected account views
@@ -32,7 +33,7 @@ All current providers are scenario-backed adapters that simulate real activity w
 
 ### Tauri runtime
 - SQLite-backed message cache
-- Deep-link callback capture for `mimir://...`
+- Deep-link callback capture for registered app schemes such as `mimir://...` and `io.mimir.app:/oauth2redirect`
 - Rust background poller that emits `mimir://poll-tick` every 10 seconds
 - Stronghold available for secure token persistence in desktop mode
 
@@ -41,12 +42,13 @@ All current providers are scenario-backed adapters that simulate real activity w
 ### Browser preview
 - Fully runnable with `npm run dev`
 - Uses an in-memory token vault
-- Automatically connects the demo providers
+- Automatically connects the demo provider
 
 ### Tauri desktop
 - Intended flow once Rust is installed locally
 - Uses Stronghold for persisted tokens
 - Uses the Rust background sync emitter
+- Supports live Gmail OAuth during development when `VITE_GMAIL_OAUTH_CLIENT_ID` is set
 
 ## Next likely product steps
 

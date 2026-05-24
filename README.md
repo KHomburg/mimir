@@ -43,6 +43,10 @@ npm run dev          # opens http://localhost:5173 with hot reload
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
 
+# Optional for live Gmail OAuth in Tauri dev
+cp .env.example .env.local
+# set VITE_GMAIL_OAUTH_CLIENT_ID in .env.local
+
 # Then start dev server
 npm run tauri:dev    # builds Rust, runs app with hot reload
 ```

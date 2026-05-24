@@ -18,7 +18,7 @@ export class LinkedInInboxProvider extends ScenarioProvider {
         summary: 'Professional inbox activity that may eventually need a lite webview fallback.',
         accent: '#0a66c2',
         capabilities: ['oauth', 'activity-feed', 'quick-reply', 'read-sync', 'lite-webview'],
-        defaultConnected: true,
+        defaultConnected: false,
       },
       scope: ['messages:read', 'messages:write'],
       blueprints: [

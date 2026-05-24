@@ -19,6 +19,7 @@ export interface AccountVault {
   getState(): Promise<AccountVaultState>
   unlock(passphrase: string): Promise<AccountVaultState>
   lock(): Promise<AccountVaultState>
+  getToken(providerId: string): Promise<AuthToken | undefined>
   storeToken(providerId: string, token: AuthToken): Promise<void>
   removeToken(providerId: string): Promise<void>
 }
@@ -39,6 +40,10 @@ class BrowserPreviewVault implements AccountVault {
 
   async lock(): Promise<AccountVaultState> {
     return this.getState()
+  }
+
+  async getToken(providerId: string): Promise<AuthToken | undefined> {
+    return this.tokens.get(providerId)
   }
 
   async storeToken(providerId: string, token: AuthToken): Promise<void> {
@@ -93,6 +98,16 @@ class StrongholdAccountVault implements AccountVault {
       mode: 'locked',
       connectedProviderIds: [],
     }
+  }
+
+  async getToken(providerId: string): Promise<AuthToken | undefined> {
+    const store = this.requireStore()
+    const value = await store.get(providerId)
+    if (!value) {
+      return undefined
+    }
+
+    return JSON.parse(decoder.decode(value)) as AuthToken
   }
 
   async storeToken(providerId: string, token: AuthToken): Promise<void> {
